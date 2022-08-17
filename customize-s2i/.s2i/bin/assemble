@@ -9,7 +9,7 @@ rc=$?
 
 if [ $rc -eq 0 ]; then
   echo ">>> Original assemble runs without any issue - start customization <<<"
-  echo "Image builded with customization on $DATE" > ./info.html
+  echo "Image built with customization on $DATE" > ./info.html
 else
   echo "Catch errors from assemble..."
 fi
