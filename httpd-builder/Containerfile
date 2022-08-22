@@ -1,0 +1,30 @@
+# httpd-builder
+FROM openshift/base-centos7
+
+ENV BUILDER_VERSION 1.0
+ENV HTTPD_CONF_DIR=/etc/httpd/conf
+ENV HTTPD_LOG=/var/log/httpd
+ENV HTTPD_RUN=/run/httpd
+ENV DOCUMENT_ROOT=/var/www/html
+
+LABEL maintainer="Christian Meissner <cme+github@meissner.sh>" \
+      io.k8s.description="Platform for building xyz" \
+      io.k8s.display-name="builder x.y.z" \
+      io.openshift.expose-services="8080:http" \
+      io.openshift.tags="builder,x.y.z,etc."
+
+RUN yum install -y httpd php && \
+    sed -i -e 's/^Listen 80$/Listen 8080/g' -e 's/^#ServerName www.example.com:80$/ServerName 0.0.0.0:8080/g' $HTTPD_CONF_DIR/httpd.conf && \
+    echo "LoadModule mpm_prefork_module modules/mod_mpm_prefork.so" > /etc/httpd/conf.modules.d/00-mpm.conf && \
+    rm -Rf ${HTTPD_LOG} ${HTTPD_RUN} && mkdir ${HTTPD_LOG} ${HTTPD_RUN} && \
+    chgrp -R 0 ${HTTPD_LOG} ${HTTPD_RUN} && \
+    chmod -R g=u ${HTTPD_LOG} ${HTTPD_RUN} && \
+    echo "it works with OpenShift" > ${DOCUMENT_ROOT}/index.html
+
+COPY ./s2i/bin/ /usr/libexec/s2i
+
+USER 1001
+
+EXPOSE 8080
+
+CMD ["/usr/libexec/s2i/usage"]
